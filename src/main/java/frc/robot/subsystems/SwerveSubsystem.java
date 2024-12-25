@@ -5,11 +5,15 @@ import java.lang.invoke.ConstantBootstraps;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -46,7 +50,7 @@ public class SwerveSubsystem extends SubsystemBase {
     Constants.SwerveConstants.RIGHT_BACK_CANCODER_ID,
     Constants.SwerveConstants.RIGHT_BACK_CANCODER_REVERSED,
     Constants.SwerveConstants.RIGHT_BACK_OFFSET);
-
+    private final StructArrayPublisher<SwerveModuleState> actualSwerve;
     private final Pigeon2 gyro = new Pigeon2(Constants.SwerveConstants.PIGEON_ID);
     private final SwerveDriveOdometry odom = new SwerveDriveOdometry(Constants.SwerveConstants.DRIVE_KINEMATICS, new Rotation2d(0),getModulePositions());
     public SwerveSubsystem(){
@@ -58,6 +62,9 @@ public class SwerveSubsystem extends SubsystemBase {
         catch(Exception e){
 
         }}).start();
+
+        actualSwerve = NetworkTableInstance.getDefault().getTable("24K").getStructArrayTopic("Actual_States", SwerveModuleState.struct).publish();
+
     }
     public void resetHeading(){
         gyro.reset();
@@ -95,7 +102,9 @@ public class SwerveSubsystem extends SubsystemBase {
     @Override
     public void periodic(){
         odom.update(getRotation2d(),getModulePositions());
+        actualSwerve.set(getSwerveStates());
         SmartDashboard.putNumber("Robot Heading",getHeading());
+        
     }
 
     public void stopModules(){
