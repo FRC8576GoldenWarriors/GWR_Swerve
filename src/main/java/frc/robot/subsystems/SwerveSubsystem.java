@@ -107,7 +107,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void resetPose(){
-        odom.resetPosition(getRotation2d(), getModulePositions(), poseEstimator.getEstimatedPosition());
+        odom.resetPosition(getRotation2d(), getModulePositions(), new Pose2d());
     }
 
     public void setPose(Pose2d pose){
